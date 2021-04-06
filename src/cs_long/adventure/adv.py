@@ -5,8 +5,6 @@ from world import World
 import random
 from ast import literal_eval
 
-from collections import deque
-
 # Load world
 world = World()
 
@@ -26,75 +24,10 @@ world.print_rooms()
 
 player = Player(world.starting_room)
 
-NORTH = "n"
-EAST = "e"
-SOUTH = "s"
-WEST = "w"
-UNEXPLORED = "?"
-directions = [NORTH, EAST, SOUTH, WEST]
-opposite = {
-    NORTH: SOUTH,
-    SOUTH: NORTH,
-    EAST: WEST,
-    WEST: EAST,
-}
-
 # Fill this out with directions to walk
 # traversal_path = ['n', 'n']
 traversal_path = []
 
-tg = {}
-
-unexplored_rooms = {}
-
-
-def bfs(starting_room):
-    q = deque()
-    q.append([('*', starting_room)])
-    visited = set()
-    while q:
-        path = q.popleft()
-        direction, room = path[-1]
-        if room not in visited:
-            visited.add(room)
-            if room not in tg or UNEXPLORED in tg[room].values():
-                return path
-            for known in tg[room].items():
-                new_path = path.copy()
-                q.append(new_path + [known])
-
-
-def dft(last_id=None, travved_dir=None):
-    id_ = player.current_room.id
-    possible_paths = player.current_room.get_exits()
-    if id_ not in tg:
-        tg[id_] = {direction: UNEXPLORED for direction in possible_paths}
-    if last_id and travved_dir:
-        tg[id_][opposite[travved_dir]] = last_id
-    unexplored_paths = [
-        direction for direction in possible_paths if
-        direction in tg[id_] and tg[id_][direction] == UNEXPLORED
-    ]
-    if not unexplored_paths:
-        # bfs back to closest node with unvisited
-        most_recent_unexplored = bfs(id_)
-        if most_recent_unexplored:
-            for d, r_id in most_recent_unexplored[1:]:
-                traversal_path.append(d)
-                player.travel(d)
-            dft()
-        else:
-            return
-    else:
-        to_explore = random.choice(unexplored_paths)
-        tg[id_][to_explore] = player.current_room.get_room_in_direction(to_explore).id
-        player.travel(to_explore)
-        traversal_path.append(to_explore)
-        dft(id_, to_explore)
-
-
-dft()
-print(tg)
 # TRAVERSAL TEST
 visited_rooms = set()
 player.current_room = world.starting_room
