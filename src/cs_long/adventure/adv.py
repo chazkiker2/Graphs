@@ -51,9 +51,7 @@ unexplored_rooms = {}
 def bfs(starting_room):
     q = deque()
     q.append([('*', starting_room)])
-
     visited = set()
-
     while q:
         path = q.popleft()
         direction, room = path[-1]
@@ -61,54 +59,37 @@ def bfs(starting_room):
             visited.add(room)
             if room not in tg or UNEXPLORED in tg[room].values():
                 return path
-
             for known in tg[room].items():
                 new_path = path.copy()
                 q.append(new_path + [known])
 
 
 def dft(last_id=None, travved_dir=None):
-    print(f"dft({last_id}, {travved_dir})")
     id_ = player.current_room.id
     possible_paths = player.current_room.get_exits()
     if id_ not in tg:
         tg[id_] = {direction: UNEXPLORED for direction in possible_paths}
     if last_id and travved_dir:
         tg[id_][opposite[travved_dir]] = last_id
-
     unexplored_paths = [
         direction for direction in possible_paths if
         direction in tg[id_] and tg[id_][direction] == UNEXPLORED
     ]
-    print(f"unexplored_paths = {unexplored_paths}, tg_at_id = {tg[id_]}")
     if not unexplored_paths:
-        print(f"bfs({id_})")
         # bfs back to closest node with unvisited
         most_recent_unexplored = bfs(id_)
-        print(f"most_recent_unexplored={most_recent_unexplored}")
         if most_recent_unexplored:
             for d, r_id in most_recent_unexplored[1:]:
                 traversal_path.append(d)
                 player.travel(d)
-
-            print(f"current_room: {player.current_room.id}")
             dft()
         else:
             return
     else:
         to_explore = random.choice(unexplored_paths)
-        print(f"to_explore={to_explore}")
         tg[id_][to_explore] = player.current_room.get_room_in_direction(to_explore).id
         player.travel(to_explore)
         traversal_path.append(to_explore)
-        print(
-            f"""
-    room id: {id_}
-    to_explore: {to_explore}
-    tg[{id_}]: {tg[id_]}
-    tg: {tg}
-    """
-        )
         dft(id_, to_explore)
 
 
