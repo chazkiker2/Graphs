@@ -1,7 +1,6 @@
 import unittest
 from ancestor import earliest_ancestor
 
-
 '''
    10
  /
@@ -11,6 +10,8 @@ from ancestor import earliest_ancestor
    \ / \   \
     6   7   9
 '''
+
+
 class Test(unittest.TestCase):
 
     def test_earliest_ancestor(self):
