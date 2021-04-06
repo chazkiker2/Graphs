@@ -32,12 +32,15 @@ player = Player(world.starting_room)
 # ----------------------------
 # Solution code
 
+# declaring constants for readability and to reduce risk of errors
 NORTH = "n"
 EAST = "e"
 SOUTH = "s"
 WEST = "w"
 UNEXPLORED = "?"
-directions = [NORTH, EAST, SOUTH, WEST]
+
+# declared for ease of use in constructing undirected graph
+# accessing one direction will return opposite direction
 opposite = {
     NORTH: SOUTH,
     SOUTH: NORTH,
@@ -70,15 +73,22 @@ def bfs(starting_room_id):
     q.append([('*', starting_room_id)])
     visited = set()
     while q:
+        # take the path at the head of the queue
         path = q.popleft()
-        direction, room = path[-1]
+        # get the last connection pair in our current path
+        # '_' would have been the direction associated with this connection
+        # but that is only relevant for the returned path
+        _, room = path[-1]
         if room not in visited:
             visited.add(room)
-            if room not in traversal_graph or UNEXPLORED in traversal_graph[room].values():
-                return path
-            for known in traversal_graph[room].items():
-                new_path = path.copy()
-                q.append(new_path + [known])
+            # if there is an unexplored path in this room's connections, then we've found our target
+            if UNEXPLORED in traversal_graph[room].values():
+                return path  # return the path; this is the shortest path to not fully explored room
+
+            # for ever connection—(direction, room) in this room's connections
+            for connection in traversal_graph[room].items():
+                # add the next possible path (from START to SOME_NODE) to the end of the queue
+                q.append(path.copy() + [connection])
 
 
 def dft(last_id=None, travelled_direction=None):
