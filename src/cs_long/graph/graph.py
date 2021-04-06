@@ -1,4 +1,7 @@
-from collections import deque
+"""
+Simple graph implementation
+"""
+from util import Stack, Queue  # These may come in handy
 
 
 class Graph:
@@ -8,61 +11,44 @@ class Graph:
         self.vertices = {}
 
     def add_vertex(self, vertex_id):
-        """Add a vertex to the graph."""
-        self.vertices[vertex_id] = set()
+        """
+        Add a vertex to the graph.
+        """
+        pass  # TODO
 
     def add_edge(self, v1, v2):
-        """Add a directed edges to the graph."""
-        if v1 not in self.vertices:
-            raise KeyError(f"{v1} is not a node in this graph!")
-        elif v2 not in self.vertices:
-            raise KeyError(f"{v2} is not a node in this graph!")
-        else:
-            self.vertices[v1].add(v2)
+        """
+        Add a directed edge to the graph.
+        """
+        pass  # TODO
 
     def get_neighbors(self, vertex_id):
-        """Get all neighbors (edges) of a vertex."""
-        if vertex_id in self.vertices:
-            return self.vertices[vertex_id]
-        else:
-            raise KeyError(f"{vertex_id} is not a node in this graph!")
+        """
+        Get all neighbors (edges) of a vertex.
+        """
+        pass  # TODO
 
     def bft(self, starting_vertex):
-        """Print each vertex in breadth-first order beginning from starting_vertex."""
-        q = deque()
-        q.append(starting_vertex)
-        visited = set()  # every element is unique (no duplicates)
-        while q:  # q will equate to FALSE if empty
-            vert = q.popleft()
-            if vert not in visited:
-                print(vert)
-                visited.add(vert)
-                for next_vert in self.vertices[vert]:
-                    q.append(next_vert)
+        """
+        Print each vertex in breadth-first order
+        beginning from starting_vertex.
+        """
+        pass  # TODO
 
     def dft(self, starting_vertex):
-        """Print each vertex in depth-first order beginning from starting_vertex."""
-        stack = deque()
-        stack.append(starting_vertex)
-        visited = set()
-        while stack:  # stack will equate to FALSE if empty
-            vert = stack.pop()  # take vertex off the top of stack (end of deque)
-            if vert not in visited:
-                print(vert)
-                visited.add(vert)
-                for next_vert in self.get_neighbors(vert):
-                    stack.append(next_vert)
+        """
+        Print each vertex in depth-first order
+        beginning from starting_vertex.
+        """
+        pass  # TODO
 
-    def dft_recursive(self, starting_vertex, visited=None):
-        """Print each vertex in depth-first order beginning from starting_vertex."""
-        if not visited:
-            visited = set()
-        visited.add(starting_vertex)
-        print(starting_vertex)  # print before recurse/loop
-        for next_vert in self.vertices[starting_vertex]:
-            # if next_vert hasn't been visited yet -- let's visit it!
-            if next_vert not in visited:
-                self.dft_recursive(next_vert, visited)
+    def dft_recursive(self, starting_vertex):
+        """
+        Print each vertex in depth-first order
+        beginning from starting_vertex.
+        This should be done using recursion.
+        """
+        pass  # TODO
 
     def bfs(self, starting_vertex, destination_vertex):
         """
@@ -70,21 +56,7 @@ class Graph:
         starting_vertex to destination_vertex in
         breath-first order.
         """
-        q = deque()
-        q.append([starting_vertex])  # creating a series of lists
-        # the queue contains each possible path from point a to point b
-        visited = set()
-        while q:
-            path = q.popleft()
-            vert = path[-1]
-            if vert not in visited:
-                if vert == destination_vertex:
-                    return path
-                visited.add(vert)
-                for next_vert in self.get_neighbors(vert):
-                    new_path = path + [next_vert]
-                    # new_path.append(next_vert)
-                    q.append(new_path)
+        pass  # TODO
 
     def dfs(self, starting_vertex, destination_vertex):
         """
@@ -92,51 +64,20 @@ class Graph:
         starting_vertex to destination_vertex in
         depth-first order.
         """
-        stack = deque()
-        stack.append([starting_vertex])  # stack will contain list of paths
-        visited = set()
-        while len(stack) > 0:
-            path = stack.pop()
-            vert = path[-1]
-            if vert not in visited:
-                if vert == destination_vertex:
-                    return path
-                visited.add(vert)
-                for next_vert in self.get_neighbors(vert):
-                    new_path = list(path)
-                    new_path.append(next_vert)
-                    stack.append(new_path)
+        pass  # TODO
 
-    def dfs_recursive(self, starting_vertex, destination_vertex, visited=None, path=None):
+    def dfs_recursive(self, starting_vertex, destination_vertex):
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
         depth-first order.
-
         This should be done using recursion.
         """
-
-        if not visited:
-            visited = set()
-
-        if not path:
-            path = []
-
-        visited.add(starting_vertex)
-        path = path + [starting_vertex]
-
-        if starting_vertex == destination_vertex:
-            return path
-
-        for child_vert in self.get_neighbors(starting_vertex):
-            if child_vert not in visited:
-                new_path = self.dfs_recursive(child_vert, destination_vertex, visited, path)
-                if new_path:
-                    return new_path
+        pass  # TODO
 
 
 if __name__ == '__main__':
-    graph = Graph()  # Instantiate your xgraph
+    graph = Graph()  # Instantiate your graph
     # https://github.com/LambdaSchool/Graphs/blob/master/objectives/breadth-first-search/img/bfs-visit-order.png
     graph.add_vertex(1)
     graph.add_vertex(2)
