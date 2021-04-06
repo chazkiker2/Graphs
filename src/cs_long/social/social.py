@@ -1,3 +1,7 @@
+from collections import deque
+import random
+
+
 class User:
     def __init__(self, name):
         self.name = name
@@ -9,10 +13,13 @@ class SocialGraph:
         self.users = {}
         self.friendships = {}
 
+    def add_friendships(self, user_id, *friends):
+        for friend in friends:
+            self.add_friendship(user_id, friend)
+
     def add_friendship(self, user_id, friend_id):
-        """
-        Creates a bi-directional friendship
-        """
+        """Creates a bi-directional friendship"""
+
         if user_id == friend_id:
             print("WARNING: You cannot be friends with yourself")
         elif friend_id in self.friendships[user_id] or user_id in self.friendships[friend_id]:
@@ -41,27 +48,61 @@ class SocialGraph:
         self.last_id = 0
         self.users = {}
         self.friendships = {}
-        # !!!! IMPLEMENT ME
+        for i in range(num_users):
+            self.add_user(f"test_user_{i}")
 
-        # Add users
+        potential_friendships = [
+            (user_id, friend_id)
+            for user_id in self.users
+            for friend_id in range(user_id + 1, self.last_id + 1)
+        ]
+        random.shuffle(potential_friendships)
+        for i in range((num_users * avg_friendships) // 2):
+            f1, f2 = potential_friendships[i]
+            self.add_friendship(f1, f2)
 
-        # Create friendships
+    def get_shortest_social_path(self, start, end):
+        q = deque()
+        q.append([start])
+        visited = set()
+        while q:
+            path = q.popleft()
+            friend = path[-1]
+            if friend not in visited:
+                if friend == end:
+                    return path
+                visited.add(friend)
+                for next_friend in self.friendships[friend]:
+                    q.append(path.copy() + [next_friend])
 
     def get_all_social_paths(self, user_id):
         """
-        Takes a user's user_id as an argument
-        Returns a dictionary containing every user in that user's
-        extended network with the shortest friendship path between them.
-        The key is the friend's ID and the value is the path.
+        :param user_id: the relevant user for which to find an extended network
+
+        Returns a dictionary containing every user in that user's extended network
+        with the shortest friendship path between them.
+        The key is the relevant friend's ID; the value is the shortest path between them
         """
-        visited = {}  # Note that this is a dictionary, not a set
-        # !!!! IMPLEMENT ME
-        return visited
+        stack = deque()
+        stack.append(user_id)
+        friend_paths = {}
+
+        while stack:
+            friend = stack.pop()
+            if friend not in friend_paths:
+                friend_paths[friend] = None
+                for next_friend in self.friendships[friend]:
+                    stack.append(next_friend)
+
+        return {
+            friend_id: self.get_shortest_social_path(user_id, friend_id)
+            for friend_id in friend_paths
+        }
 
 
 if __name__ == '__main__':
     sg = SocialGraph()
     sg.populate_graph(10, 2)
-    print(sg.friendships)
+    print(f"sg.friendships={sg.friendships}")
     connections = sg.get_all_social_paths(1)
-    print(connections)
+    print(f"connections={connections}")
