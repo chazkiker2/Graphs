@@ -42,7 +42,7 @@ def bidi_search(graph, start, destination):
                     # if joined_paths is in reverse order, we'll just reverse it
                     if joined_paths[0] != start:
                         joined_paths.reverse()
-                    # return our joined paths from start to end!
+                    # return our joined paths from start to destination!
                     return joined_paths
 
             # if we're here, we did not find a solution at this level
