@@ -17,14 +17,11 @@ map_files = {
     "main": "maps/main_maze.txt"
 }
 
-map_file = map_files["main"]
+map_file = map_files["loop_fork"]
 
 # loads the map into a dictionary
 room_graph = literal_eval(open(map_file, "r").read())
 world.load_graph(room_graph)
-
-# Print an ASCII map
-world.print_rooms()
 
 # Initialize the Player in the starting_room
 player = Player(world.starting_room)
@@ -57,6 +54,18 @@ traversal_path = []
 # representing a known path out of the room
 # The associated value will be either the id of the room on the other side or a '?'
 traversal_graph = {}
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 def bfs(starting_room_id):
@@ -102,11 +111,12 @@ def dft(last_id=None, travelled_direction=None):
     possible_paths = player.current_room.get_exits()
     if id_ not in traversal_graph:
         traversal_graph[id_] = {direction: UNEXPLORED for direction in possible_paths}
+    graph_entry = traversal_graph[id_]
     if last_id and travelled_direction:
-        traversal_graph[id_][opposite[travelled_direction]] = last_id
+        graph_entry[opposite[travelled_direction]] = last_id
     unexplored_paths = [
         direction for direction in possible_paths if
-        direction in traversal_graph[id_] and traversal_graph[id_][direction] == UNEXPLORED
+        direction in graph_entry and graph_entry[direction] == UNEXPLORED
     ]
     # if unexplored_paths is empty, we'll have to traverse back to a room with an unexplored route
     if not unexplored_paths:
@@ -127,7 +137,7 @@ def dft(last_id=None, travelled_direction=None):
         # choose an unexplored path at random
         to_explore = random.choice(unexplored_paths)
         # explore. this finds what room is on the other side of our connection and updates our traversal_graph
-        traversal_graph[id_][to_explore] = player.current_room.get_room_in_direction(to_explore).id
+        graph_entry[to_explore] = player.current_room.get_room_in_direction(to_explore).id
         # have the player travel in this direction
         player.travel(to_explore)
         # represent this travel in our path
@@ -136,32 +146,105 @@ def dft(last_id=None, travelled_direction=None):
         dft(id_, to_explore)
 
 
-dft()  # invoke the traversal to explore all the rooms
+def print_step(string):
+    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{string}{bcolors.ENDC}")
 
-# TRAVERSAL TEST
-visited_rooms = set()
-player.current_room = world.starting_room
-visited_rooms.add(player.current_room)
 
-for move in traversal_path:
-    player.travel(move)
+def dft_iter():
+    dq = deque()
+    dq.append(player.current_room.id)
+    last_id = travelled_direction = None
+
+    while dq:
+        id_ = dq.pop()
+        coords, possible_paths = room_graph[id_]
+
+        if id_ not in traversal_graph:
+            traversal_graph[id_] = {direction: UNEXPLORED for direction in possible_paths}
+
+        graph_entry = traversal_graph[id_]
+
+        if last_id is not None and travelled_direction:
+            graph_entry[opposite[travelled_direction]] = last_id
+            last_id = travelled_direction = None
+
+        unexplored_paths = [
+            direction for direction in possible_paths if
+            direction in graph_entry and graph_entry[direction] == UNEXPLORED
+        ]
+        print(f"id={id_}\t\tgraph_entry={graph_entry}")
+
+        if not unexplored_paths:
+            print(f"{bcolors.WARNING}DEAD END{bcolors.ENDC}")
+            q = deque()
+            q.append([('*', id_)])
+            visited = set()
+            closest_unexplored = None
+            while q:
+                path = q.popleft()
+                _, room = path[-1]
+                if room not in visited:
+                    visited.add(room)
+                    if UNEXPLORED in traversal_graph[room].values():
+                        closest_unexplored = path
+                        break
+                    for connection in traversal_graph[room].items():
+                        q.append(path + [connection])
+
+            if closest_unexplored:
+                print(f"{bcolors.OKGREEN}closest_unexplored={closest_unexplored}")
+                for d, r_id in closest_unexplored[1:]:
+                    traversal_path.append(d)
+                    print_step(f"step {len(traversal_path)}: {d.upper()} back to {r_id}")
+                print(f"{bcolors.OKGREEN}return to {closest_unexplored[-1][1]}{bcolors.ENDC}")
+                dq.append(closest_unexplored[-1][1])
+
+            else:
+                break
+
+        else:
+
+            to_explore = random.choice(unexplored_paths)
+            next_room_id = possible_paths[to_explore]
+            graph_entry[to_explore] = next_room_id
+
+            traversal_path.append(to_explore)
+            print_step(f"step {len(traversal_path)}: {to_explore.upper()} into {next_room_id}")
+            last_id = id_
+            travelled_direction = to_explore
+            dq.append(next_room_id)
+
+
+if __name__ == '__main__':
+    # Print an ASCII map
+    world.print_rooms()
+
+    dft_iter()  # invoke the traversal to explore all the rooms
+
+    # TRAVERSAL TEST
+    visited_rooms = set()
+    player.current_room = world.starting_room
     visited_rooms.add(player.current_room)
 
-if len(visited_rooms) == len(room_graph):
-    print(f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
-else:
-    print("TESTS FAILED: INCOMPLETE TRAVERSAL")
-    print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
+    for move in traversal_path:
+        player.travel(move)
+        visited_rooms.add(player.current_room)
 
-#######
-# UNCOMMENT TO WALK AROUND
-#######
-# player.current_room.print_room_description(player)
-# while True:
-#     cmds = input("-> ").lower().split(" ")
-#     if cmds[0] in ["n", "s", "e", "w"]:
-#         player.travel(cmds[0], True)
-#     elif cmds[0] == "q":
-#         break
-#     else:
-#         print("I did not understand that command.")
+    if len(visited_rooms) == len(room_graph):
+        print(f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
+    else:
+        print("TESTS FAILED: INCOMPLETE TRAVERSAL")
+        print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
+
+    #######
+    # UNCOMMENT TO WALK AROUND
+    #######
+    # player.current_room.print_room_description(player)
+    # while True:
+    #     cmds = input("-> ").lower().split(" ")
+    #     if cmds[0] in ["n", "s", "e", "w"]:
+    #         player.travel(cmds[0], True)
+    #     elif cmds[0] == "q":
+    #         break
+    #     else:
+    #         print("I did not understand that command.")
